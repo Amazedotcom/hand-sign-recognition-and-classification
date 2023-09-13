@@ -1,0 +1,4 @@
+# hand-sign-recognition-and-classification
+a web application that can detect the various signs 
+Implemented tensorflow to to dete the hand signs.
+Languases used are python ,html , css.
