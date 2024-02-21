@@ -8,81 +8,53 @@ import tensorflow as tf
 
 app = Flask(__name__)
 
-
-
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_hands = mp.solutions.hands 
 
-
 label = ['a','b','c','d','e','f','g','h','i','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y']
-model = tf.keras.models.load_model("D:\\saved_model_in_json\\other_h5models\\my_model.h5")
+model = tf.keras.models.load_model("D:\\model\\my_model.h5")
 
 padd = 20
-
-
-
 
 @app.route("/")
 def index():
 	return render_template('index.html')
 
 
-
-
-
 @app.route('/camera',methods=['POST','GET'])
 def getCamera():
 
 	cap = cv2.VideoCapture(0)
-
-
 	with mp_hands.Hands(
 			model_complexity=0,
 			min_detection_confidence=0.5,
 			min_tracking_confidence=0.5) as hands:
 
-
-
-
 		while cap.isOpened():
 			sucess, image = cap.read()
 			time.sleep(0.1)
-
-			
-
 
 			if cv2.waitKey(0) & 0xFF == ord('q'):
 				break
 
 			if not sucess:
 				break
-
-
+				
 			else:
 
 				image.flags.writeable = False
 				image = cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
 
 				results=hands.process(image)
-
-
-
-
+				
 				image.flags.writeable=True
 				image =image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 				if results.multi_hand_landmarks:
-
 					
-
 					#for hand_landmarks in results.multi_hand_landmarks:
 					for num,hand  in enumerate(results.multi_hand_landmarks):
-
-
 						x,y,w,h = calc_bounding_rect(image , hand)
-
-
-
 						myHand = {}
 						## lmList
 						mylmList = []
@@ -106,13 +78,10 @@ def getCamera():
 						myHand["bbox"] = bbox
 						myHand["center"] = (cx, cy)
 						X , Y , H, W = myHand["bbox"]
-
-
+						
 						cv2.rectangle(image,(x,y),(H+W,W+Y),(250,0,0),2 )
-
-
+						
 						try:
-
 							# croping hands images
 							croped_img1 = image[Y - padd:Y+W + padd,X - padd:X+H + padd]
 							#reshaping the image to model shape.
@@ -135,31 +104,15 @@ def getCamera():
 							mp_hands.HAND_CONNECTIONS,
 							mp_drawing_styles.get_default_hand_landmarks_style(),
 							mp_drawing_styles.get_default_hand_connections_style())
-
-
-
-
-
+						
 				ret , buffer = cv2.imencode('.jpg',image)
-
 				frame = buffer.tobytes()
-
 				yield(b'--frame\r\n'
 					b'Content-Type:image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 		cap.release()
 		cv2.destroyAllWindows()
-
-
-
-
-
-
-########33
-
-
-
-
+				
 def calc_bounding_rect(image, landmarks):
     image_width, image_height = image.shape[1], image.shape[0]
 
@@ -191,14 +144,11 @@ def start():
 	return render_template('video.html')
 
 
-
 @app.route("/stop", methods=['POST'])
 def stop():
 
 	return redirect("/")
-
-
-
+	
 if __name__==('__main__'):
 	app.run(debug=False)
 
